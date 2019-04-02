@@ -15,17 +15,23 @@ use type Facebook\HackTest\ExpectationFailedException;
 
 abstract class Assert {
 
+  public function __construct(
+    private AssertPassed $passed = new AssertFailedException(),
+    private AssertFailed $failed = new AssertPassedNoOp()
+  ) {
+  }
+
   public function assertSame(
     mixed $expected,
     mixed $actual,
     string $message = '',
   ): void {
     if ($expected === $actual) {
-      return;
+      $passed->passed($message);
     }
 
     if ($expected is string && $actual is string) {
-      throw new ExpectationFailedException(
+      $failed->failed(
         Str\format(
           "%s\nFailed asserting that two strings are the same:\n%s\n",
           $message,
@@ -34,7 +40,7 @@ abstract class Assert {
       );
     }
 
-    throw new ExpectationFailedException(
+    $failed->failed(
       Str\format(
         "%s\nFailed asserting that %s is the same as %s",
         $message,
